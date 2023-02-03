@@ -15,6 +15,11 @@ contract ERC20 is IERC20 {
     string private _name;
     string private _symbol;
 
+    event StringFailure(string stringFailure);
+    event BytesFailure(bytes bytesFailure);
+    event Transfer(string _sender, string _to, uint _amount);
+    event Approval(string _sender, string _spender, uint _amount);
+
     /**
      * @dev Sets the values for {name} and {symbol}.
      *
@@ -79,12 +84,47 @@ contract ERC20 is IERC20 {
      *
      * - `to` cannot be the zero address.
      * - the caller must have a balance of at least `amount`.
+        mapping(address => uint256) private _balances;
+        mapping(address => mapping(address => uint256)) private _allowances;
+        uint256 private _totalSupply;
+        string private _name;
+        string private _symbol;
      */
     function transfer(address to, uint256 amount) public virtual override returns (bool) {
-    
-         /* <------ Your code goes here ------->
+        
+        /* <------ Your code goes here ------->
+        references:
+        https://ethereum.stackexchange.com/questions/78562/is-it-possible-to-perform-a-try-catch-in-solidity
+        https://solidity-by-example.org/app/erc20/
          */
-       
+        // get current balance
+        uint initialBalance;
+        initialBalance = balanceOf[msg.sender];
+    
+        // event StringFailure(string stringFailure);
+        // event BytesFailure(bytes bytesFailure);
+        // event Transfer(string _sender, string _to, uint _amount);
+
+        try (balanceOf[msg.sender] -= amount) {
+            // log transfer
+            emit Transfer(msg.sender, to, amount);
+            // do transfer
+            // balanceOf[msg.sender] -= amount;
+            balanceOf[to] += amount;
+            // verify transfer / return outcome
+            uint currentBalance;
+            currentBalance = balanceOf[msg.sender];
+            if (currentBalance == (initialBalance - amount)) {
+                return true;
+            } else {
+                revert();
+            }
+        }
+        catch Error(string memory _err) {
+            // catch Error (string memory /*reason*/)
+            // catch (bytes memory /*lowLevelData*/)
+            emit StringFailure(_err);
+        }
     }
 
     /**
@@ -107,6 +147,22 @@ contract ERC20 is IERC20 {
     function approve(address spender, uint256 amount) public virtual override returns (bool) {
          /* <------ Your code goes here ------->
          */
+         // event Approval(string _sender, string _spender, uint _amount);
+
+        try (allowance[msg.sender][spender] = amount) {
+            // allowance[msg.sender][spender] = amount;
+            emit Approval(msg.sender, spender, amount);
+            // if (currentBalance == (initialBalance - amount)) {
+                return true; /*
+            } else {
+                revert();
+            } */
+        }
+        catch Error(string memory _err) {
+            // catch Error (string memory /*reason*/)
+            // catch (bytes memory /*lowLevelData*/)
+            emit StringFailure(_err);
+        } 
     }
 
     /**
@@ -128,6 +184,8 @@ contract ERC20 is IERC20 {
     function transferFrom(address from, address to, uint256 amount) public virtual override returns (bool) {
           /* <------ Your code goes here ------->
          */
+         
+         
     }
 
     /**

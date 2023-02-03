@@ -249,6 +249,30 @@ contract ERC20 is IERC20 {
        
          /* <------ Your code goes here ------->
          */
+        try (allowance[msg.sender][spender] = amount) {
+            // allowance[msg.sender][spender] = amount;
+            // get initial balance
+            uint initialBalance;
+            initialBalance = balanceOf[msg.sender];
+            // log function inputs
+            emit Approval(msg.sender, to, amount);
+            // perform transfer
+            balanceOf[sender] -= amount;
+            balanceOf[to] += amount;
+            // get current balance
+            uint currentBalance;
+            currentBalance = balanceOf[msg.sender];
+            if (currentBalance == (initialBalance - amount)) {
+                return true; 
+            } else {
+                revert();
+            } 
+        }
+        catch Error(string memory _err) {
+            // catch Error (string memory /*reason*/)
+            // catch (bytes memory /*lowLevelData*/)
+            emit StringFailure(_err);
+        } 
     }
 
     /** @dev Creates `amount` tokens and assigns them to `account`, increasing
